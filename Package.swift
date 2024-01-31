@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "FirebaseRemoteConfig-OpenFeature-Provider-Swift",
+    name: "FirebaseRemoteConfigOpenFeatureProvider",
     platforms: [
         .iOS(.v14),
         .macOS(.v12)
@@ -12,22 +12,30 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "FirebaseRemoteConfig-OpenFeature-Provider-Swift",
-            targets: ["FirebaseRemoteConfig-OpenFeature-Provider-Swift"]),
+            name: "FirebaseRemoteConfigOpenFeatureProvider",
+            targets: ["FirebaseRemoteConfigOpenFeatureProvider"]),
     ],
     dependencies: [
         .package(
             url: "https://github.com/open-feature/swift-sdk.git",
             .upToNextMajor(from: "0.0.2")
         ),
+        .package(
+            url: "https://github.com/firebase/firebase-ios-sdk.git",
+            .upToNextMajor(from: "10.4.0")
+        ),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "FirebaseRemoteConfig-OpenFeature-Provider-Swift"),
+            name: "FirebaseRemoteConfigOpenFeatureProvider",
+            dependencies: [
+                .product(name: "FirebaseRemoteConfig", package: "firebase-ios-sdk"),
+                .product(name: "OpenFeature", package: "swift-sdk"),
+            ]),
         .testTarget(
-            name: "FirebaseRemoteConfig-OpenFeature-Provider-SwiftTests",
-            dependencies: ["FirebaseRemoteConfig-OpenFeature-Provider-Swift"]),
+            name: "FirebaseRemoteConfigOpenFeatureProviderTests",
+            dependencies: ["FirebaseRemoteConfigOpenFeatureProvider"]),
     ]
 )

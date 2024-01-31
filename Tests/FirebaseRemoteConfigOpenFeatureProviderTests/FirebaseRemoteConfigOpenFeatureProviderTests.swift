@@ -1,5 +1,5 @@
 import XCTest
-@testable import FirebaseRemoteConfig_OpenFeature_Provider_Swift
+@testable import FirebaseRemoteConfigOpenFeatureProvider
 
 final class FirebaseRemoteConfig_OpenFeature_Provider_SwiftTests: XCTestCase {
     func testExample() throws {
