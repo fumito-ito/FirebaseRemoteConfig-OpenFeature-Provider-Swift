@@ -9,8 +9,7 @@ public let firebaseRemoteConfigOpenFeatureProviderOldContextKey = "firebaseRemot
 public let firebaseRemoteConfigOpenFeatureProviderNewContextKey = "firebaseRemoteConfigOpenFeatureProviderNewContextKey"
 
 public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
-    public private(set) var remoteConfig: RemoteConfig
-    public private(set) var timeIntervalUntilStale: TimeInterval
+    public private(set) var remoteConfig: RemoteConfigCompatible
 
     public var hooks: [any Hook] = []
     public let metadata: ProviderMetadata = FirebaseRemoteConfigOpenFeatureProviderMetadata()
@@ -33,25 +32,18 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
                 break
             case .ready:
                 emit(event: .ready)
-            case .stale:
-                emit(event: .stale)
             case .error:
                 emit(event: .error)
             }
         }
     }
 
-    public init(remoteConfig: RemoteConfig) {
+    public init(remoteConfig: RemoteConfigCompatible) {
         self.remoteConfig = remoteConfig
-        self.timeIntervalUntilStale = remoteConfig.configSettings.minimumFetchInterval
-        updateStatus(for: remoteConfig, timeIntervalUntilStale: remoteConfig.configSettings.minimumFetchInterval)
     }
 
     public func initialize(initialContext: EvaluationContext?) {
-        if case .double(let timeIntervalUntilStale) = initialContext?.getValue(key: firebaseRemoteConfigOpenFeatureProviderStaleTimeIntervalKey) {
-            self.timeIntervalUntilStale = timeIntervalUntilStale
-            updateStatus(for: remoteConfig, timeIntervalUntilStale: timeIntervalUntilStale)
-        }
+        updateStatus(for: remoteConfig)
     }
 
     public func onContextSet(oldContext: EvaluationContext?, newContext: EvaluationContext) {
@@ -63,17 +55,12 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
         ])
     }
 
-    func updateStatus(for remoteConfig: RemoteConfig, timeIntervalUntilStale: TimeInterval) {
+    func updateStatus(for remoteConfig: RemoteConfigCompatible) {
         switch remoteConfig.lastFetchStatus {
         case .noFetchYet:
             status = .notReady
         case .success, .throttled:
-            let lastFetchTime = remoteConfig.lastFetchTime ?? Date()
-            if lastFetchTime.timeIntervalSinceNow > timeIntervalUntilStale {
-                status = .stale
-            } else {
-                status = .ready
-            }
+            status = .ready
         case .failure:
             status = .error
         @unknown default:
@@ -82,70 +69,69 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
     }
 
     public func getBooleanEvaluation(key: String, defaultValue: Bool, context: EvaluationContext?) throws -> ProviderEvaluation<Bool> {
-        let remoteConfig = try getRemoteConfigIfContains(key: key, with: context)
+        guard remoteConfig.has(key: key) else {
+            throw OpenFeatureError.flagNotFoundError(key: key)
+        }
 
-        return remoteConfig.configValue(forKey: key).toBooleanEvaluation
+        return remoteConfig.configValue(for: key).toBooleanEvaluation
     }
 
     public func getStringEvaluation(key: String, defaultValue: String, context: EvaluationContext?) throws -> ProviderEvaluation<String> {
-        let remoteConfig = try getRemoteConfigIfContains(key: key, with: context)
+        guard remoteConfig.has(key: key) else {
+            throw OpenFeatureError.flagNotFoundError(key: key)
+        }
 
-        return remoteConfig.configValue(forKey: key).toStringEvaluation
+        return remoteConfig.configValue(for: key).toStringEvaluation
     }
 
     public func getIntegerEvaluation(key: String, defaultValue: Int64, context: EvaluationContext?) throws -> ProviderEvaluation<Int64> {
-        let remoteConfig = try getRemoteConfigIfContains(key: key, with: context)
+        guard remoteConfig.has(key: key) else {
+            throw OpenFeatureError.flagNotFoundError(key: key)
+        }
 
-        return remoteConfig.configValue(forKey: key).toInt64Evaluation
+        return remoteConfig.configValue(for: key).toInt64Evaluation
     }
 
     public func getDoubleEvaluation(key: String, defaultValue: Double, context: EvaluationContext?) throws -> ProviderEvaluation<Double> {
-        let remoteConfig = try getRemoteConfigIfContains(key: key, with: context)
+        guard remoteConfig.has(key: key) else {
+            throw OpenFeatureError.flagNotFoundError(key: key)
+        }
 
-        return remoteConfig.configValue(forKey: key).toDoubleEvaluation
+        return remoteConfig.configValue(for: key).toDoubleEvaluation
     }
 
     public func getObjectEvaluation(key: String, defaultValue: Value, context: EvaluationContext?) throws -> ProviderEvaluation<Value> {
-        let remoteConfig = try getRemoteConfigIfContains(key: key, with: context)
+        guard remoteConfig.has(key: key) else {
+            throw OpenFeatureError.flagNotFoundError(key: key)
+        }
 
-        return try remoteConfig.configValue(forKey: key).toObjectEvaluation
+        return try remoteConfig.configValue(for: key).toObjectEvaluation
     }
 }
 
 extension FirebaseRemoteConfigOpenFeatureProvider {
     public func getDateEvaluation(key: String, defaultValue: Date, context: EvaluationContext?) throws -> ProviderEvaluation<Date> {
-        let remoteConfig = try getRemoteConfigIfContains(key: key, with: context)
-
-        return try remoteConfig.configValue(forKey: key).toDateEvaluation
-    }
-
-    public func getListEvaluation(key: String, defaultValue: [Value], context: EvaluationContext?) throws -> ProviderEvaluation<[Value]> {
-        let remoteConfig = try getRemoteConfigIfContains(key: key, with: context)
-
-        return try remoteConfig.configValue(forKey: key).toValueArrayEvaluation
-    }
-
-    public func getStructureEvaluation(key: String, defaultValue: [String: Value], context: EvaluationContext?) throws -> ProviderEvaluation<[String: Value]> {
-        let remoteConfig = try getRemoteConfigIfContains(key: key, with: context)
-
-        return try remoteConfig.configValue(forKey: key).toValueStructureEvaluation
-    }
-}
-
-extension FirebaseRemoteConfigOpenFeatureProvider {
-    private func getRemoteConfig(with context: EvaluationContext?) -> RemoteConfig {
-        // TODO: contextを考慮して取得する
-        remoteConfig
-    }
-
-    private func getRemoteConfigIfContains(key: String, with context: EvaluationContext?) throws -> RemoteConfig {
-        let remoteConfig = getRemoteConfig(with: context)
-
         guard remoteConfig.has(key: key) else {
             throw OpenFeatureError.flagNotFoundError(key: key)
         }
 
-        return remoteConfig
+        return try remoteConfig.configValue(for: key).toDateEvaluation
+    }
+
+    public func getListEvaluation(key: String, defaultValue: [Value], context: EvaluationContext?) throws -> ProviderEvaluation<[Value]> {
+        guard remoteConfig.has(key: key) else {
+            throw OpenFeatureError.flagNotFoundError(key: key)
+        }
+
+        return try remoteConfig.configValue(for: key).toValueArrayEvaluation
+    }
+
+    public func getStructureEvaluation(key: String, defaultValue: [String: Value], context: EvaluationContext?) throws -> ProviderEvaluation<[String: Value]> {
+        guard remoteConfig.has(key: key) else {
+            throw OpenFeatureError.flagNotFoundError(key: key)
+        }
+
+        return try remoteConfig.configValue(for: key).toValueStructureEvaluation
     }
 }
 

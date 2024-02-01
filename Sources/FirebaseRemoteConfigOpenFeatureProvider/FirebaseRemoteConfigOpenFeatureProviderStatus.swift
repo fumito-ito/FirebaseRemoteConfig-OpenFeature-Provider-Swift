@@ -10,6 +10,5 @@ import Foundation
 public enum FirebaseRemoteConfigOpenFeatureProviderStatus: String {
     case notReady = "NOT_READY"
     case ready = "READY"
-    case stale = "STALE"
     case error = "ERROR"
 }

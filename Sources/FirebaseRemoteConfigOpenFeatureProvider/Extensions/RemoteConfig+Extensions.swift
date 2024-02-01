@@ -1,14 +1,14 @@
 //
 //  RemoteConfig+Extensions.swift
-//  
 //
-//  Created by Fumito Ito on 2024/01/25.
+//
+//  Created by Fumito Ito on 2024/02/01.
 //
 
 import FirebaseRemoteConfig
 
-extension RemoteConfig {
-    func has(key: String) -> Bool {
-        allKeys(from: .remote).contains(key) || allKeys(from: .default).contains(key)
+extension RemoteConfig: RemoteConfigCompatible {
+    public func configValue(for key: String) -> RemoteConfigValueCompatible {
+        configValue(forKey: key)
     }
 }
