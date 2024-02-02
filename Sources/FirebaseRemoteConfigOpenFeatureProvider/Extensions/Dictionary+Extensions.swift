@@ -25,10 +25,10 @@ extension Dictionary<String, Any> {
                 return .string(typedValue)
 
             case .integer:
-                guard let typedValue = value as? Int64 else {
+                guard let typedValue = value as? Int else {
                     throw OpenFeatureError.parseError(message: "Cannot parse \(value) as Int64")
                 }
-                return .integer(typedValue)
+                return .integer(Int64(typedValue))
 
             case .double:
                 guard let typedValue = value as? Double else {

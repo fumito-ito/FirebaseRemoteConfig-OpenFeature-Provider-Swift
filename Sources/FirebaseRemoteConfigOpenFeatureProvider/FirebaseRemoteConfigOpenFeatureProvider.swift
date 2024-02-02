@@ -40,6 +40,7 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
 
     public init(remoteConfig: RemoteConfigCompatible) {
         self.remoteConfig = remoteConfig
+        updateStatus(for: remoteConfig)
     }
 
     public func initialize(initialContext: EvaluationContext?) {
