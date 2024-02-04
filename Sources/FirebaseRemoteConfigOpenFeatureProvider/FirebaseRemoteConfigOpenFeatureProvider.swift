@@ -3,6 +3,7 @@
 
 import OpenFeature
 import FirebaseRemoteConfig
+import FirebaseCore
 
 public let firebaseRemoteConfigOpenFeatureProviderStaleTimeIntervalKey = "firebaseRemoteConfigOpenFeatureProviderStaleTimeIntervalKey"
 public let firebaseRemoteConfigOpenFeatureProviderOldContextKey = "firebaseRemoteConfigOpenFeatureProviderOldContextKey"
@@ -41,6 +42,7 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
     public init(remoteConfig: RemoteConfigCompatible) {
         self.remoteConfig = remoteConfig
         updateStatus(for: remoteConfig)
+        NotificationCenter.default.addObserver(self, selector: #selector(remoteConfigDidActivated), name: .onRemoteConfigActivated, object: nil)
     }
 
     public func initialize(initialContext: EvaluationContext?) {
@@ -139,5 +141,24 @@ extension FirebaseRemoteConfigOpenFeatureProvider {
 extension FirebaseRemoteConfigOpenFeatureProvider {
     func emit(event: ProviderEvent, error: Error? = nil, details: [String: Any]? = nil) {
         OpenFeatureAPI.shared.emitEvent(event, provider: self, error: error, details: details)
+    }
+}
+
+extension FirebaseRemoteConfigOpenFeatureProvider {
+    @objc func remoteConfigDidActivated(notification: Notification) {
+        // Make sure this key is consistent with kFIRGoogleAppIDKey in FirebaseCore SDK
+        // see also https://github.com/firebase/firebase-ios-sdk/blob/main/FirebaseRemoteConfig/Swift/PropertyWrapper/RemoteConfigValueObservable.swift
+        let firebaseRemoteConfigAppNameKey = "FIRAppNameKey"
+        
+        guard let appName = notification.userInfo?[firebaseRemoteConfigAppNameKey] as? String,
+              FirebaseApp.app()?.name == appName else {
+            return
+        }
+        
+        if status != .ready {
+            status = .ready
+        }
+
+        emit(event: .configurationChanged)
     }
 }
