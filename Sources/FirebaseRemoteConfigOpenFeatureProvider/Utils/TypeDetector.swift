@@ -20,6 +20,7 @@ enum TypeDetector {
         case unknown
     }
 
+    // swiftlint:disable:next cyclomatic_complexity
     static func detectType(from object: Any) -> DetectedType {
         switch CFGetTypeID(object as CFTypeRef) {
         case CFBooleanGetTypeID():
@@ -59,4 +60,3 @@ enum TypeDetector {
         }
     }
 }
-

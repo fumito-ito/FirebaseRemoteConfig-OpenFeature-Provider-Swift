@@ -9,6 +9,7 @@ import Foundation
 import OpenFeature
 
 extension Dictionary<String, Any> {
+    // swiftlint:disable:next cyclomatic_complexity
     func wrapInValue() throws -> [String: OpenFeature.Value] {
         try self.mapValues { value in
             switch TypeDetector.detectType(from: value) {

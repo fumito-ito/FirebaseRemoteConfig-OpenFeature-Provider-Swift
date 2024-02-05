@@ -9,6 +9,7 @@ import Foundation
 import OpenFeature
 
 extension Array where Element == Any {
+    // swiftlint:disable:next cyclomatic_complexity
     func wrapInValue() throws -> [Value] {
         try self.map { value in
             switch TypeDetector.detectType(from: value) {

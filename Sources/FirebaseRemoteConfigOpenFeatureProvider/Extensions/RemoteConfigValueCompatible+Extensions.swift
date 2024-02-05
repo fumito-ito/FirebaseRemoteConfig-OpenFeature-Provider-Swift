@@ -40,7 +40,11 @@ extension RemoteConfigValueCompatible {
                 throw OpenFeatureError.parseError(message: "指定されたキーから取得した文字列を日付に変換することができない")
             }
 
-            return .init(value: date, variant: FirebaseRemoteConfigOpenFeatureProvider.dateFormatter.string(from: date), reason: source.reason.rawValue)
+            return .init(
+                value: date,
+                variant: FirebaseRemoteConfigOpenFeatureProvider.dateFormatter.string(from: date),
+                reason: source.reason.rawValue
+            )
         }
     }
 
@@ -86,10 +90,12 @@ extension RemoteConfigValueCompatible {
             case (_, let .some(dictionary), _):
                 value = .structure(try dictionary.wrapInValue())
             case (_, _, let .some(unwrappedString)):
-                switch (FirebaseRemoteConfigOpenFeatureProvider.dateFormatter.date(from: unwrappedString),
-                        Int64(unwrappedString),
-                        Double(unwrappedString),
-                        Bool(unwrappedString)) {
+                switch (
+                    FirebaseRemoteConfigOpenFeatureProvider.dateFormatter.date(from: unwrappedString),
+                    Int64(unwrappedString),
+                    Double(unwrappedString),
+                    Bool(unwrappedString)
+                ) {
                 case (let .some(date), _, _, _):
                     value = .date(date)
                 case (_, let .some(int), _, _):

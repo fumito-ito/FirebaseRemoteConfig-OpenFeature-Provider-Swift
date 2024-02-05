@@ -5,8 +5,9 @@ import OpenFeature
 import FirebaseRemoteConfig
 import FirebaseCore
 
-public let firebaseRemoteConfigOpenFeatureProviderStaleTimeIntervalKey = "firebaseRemoteConfigOpenFeatureProviderStaleTimeIntervalKey"
+// swiftlint:disable:next identifier_name
 public let firebaseRemoteConfigOpenFeatureProviderOldContextKey = "firebaseRemoteConfigOpenFeatureProviderOldContextKey"
+// swiftlint:disable:next identifier_name
 public let firebaseRemoteConfigOpenFeatureProviderNewContextKey = "firebaseRemoteConfigOpenFeatureProviderNewContextKey"
 
 public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
@@ -25,7 +26,7 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
 
         return dateFormatter
     }()
-    
+
     /// Provider status
     public private(set) var status: FirebaseRemoteConfigOpenFeatureProviderStatus = .notReady {
         didSet {
@@ -39,7 +40,7 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
             }
         }
     }
-    
+
     /// Provider initializer
     ///
     /// This initilizer updates provider status belong with remote config instance. Also it starts observing notification for remoteConfig update.
@@ -49,11 +50,11 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
         updateStatus(for: remoteConfig)
         NotificationCenter.default.addObserver(self, selector: #selector(remoteConfigDidActivated), name: .onRemoteConfigActivated, object: nil)
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self, name: .onRemoteConfigActivated, object: nil)
     }
-    
+
     /// Provider initializer
     ///
     /// This provider does not support context
@@ -61,7 +62,7 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
     public func initialize(initialContext: EvaluationContext?) {
         updateStatus(for: remoteConfig)
     }
-    
+
     /// Update contexts for the provider
     ///
     /// This function notifies `.configurationChanged`event
@@ -168,12 +169,13 @@ extension FirebaseRemoteConfigOpenFeatureProvider {
         // Make sure this key is consistent with kFIRGoogleAppIDKey in FirebaseCore SDK
         // see also https://github.com/firebase/firebase-ios-sdk/blob/main/FirebaseRemoteConfig/Swift/PropertyWrapper/RemoteConfigValueObservable.swift
         let firebaseRemoteConfigAppNameKey = "FIRAppNameKey"
-        
-        guard let appName = notification.userInfo?[firebaseRemoteConfigAppNameKey] as? String,
-              FirebaseApp.app()?.name == appName else {
+
+        guard
+            let appName = notification.userInfo?[firebaseRemoteConfigAppNameKey] as? String,
+            FirebaseApp.app()?.name == appName else {
             return
         }
-        
+
         if status != .ready {
             status = .ready
         }
