@@ -25,7 +25,8 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
 
         return dateFormatter
     }()
-
+    
+    /// Provider status
     public private(set) var status: FirebaseRemoteConfigOpenFeatureProviderStatus = .notReady {
         didSet {
             switch status {
@@ -38,22 +39,35 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
             }
         }
     }
-
+    
+    /// Provider initializer
+    ///
+    /// This initilizer updates provider status belong with remote config instance. Also it starts observing notification for remoteConfig update.
+    /// - Parameter remoteConfig: remoteConfig instance to provide flags
     public init(remoteConfig: RemoteConfigCompatible) {
         self.remoteConfig = remoteConfig
         updateStatus(for: remoteConfig)
         NotificationCenter.default.addObserver(self, selector: #selector(remoteConfigDidActivated), name: .onRemoteConfigActivated, object: nil)
     }
-
     
     deinit {
         NotificationCenter.default.removeObserver(self, name: .onRemoteConfigActivated, object: nil)
     }
     
+    /// Provider initializer
+    ///
+    /// This provider does not support context
+    /// - Parameter initialContext: initial context
     public func initialize(initialContext: EvaluationContext?) {
         updateStatus(for: remoteConfig)
     }
-
+    
+    /// Update contexts for the provider
+    ///
+    /// This function notifies `.configurationChanged`event
+    /// - Parameters:
+    ///   - oldContext: old context
+    ///   - newContext: new context
     public func onContextSet(oldContext: EvaluationContext?, newContext: EvaluationContext) {
         initialize(initialContext: newContext)
 
