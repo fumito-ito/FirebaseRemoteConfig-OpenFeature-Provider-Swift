@@ -45,6 +45,11 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
         NotificationCenter.default.addObserver(self, selector: #selector(remoteConfigDidActivated), name: .onRemoteConfigActivated, object: nil)
     }
 
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: .onRemoteConfigActivated, object: nil)
+    }
+    
     public func initialize(initialContext: EvaluationContext?) {
         updateStatus(for: remoteConfig)
     }
