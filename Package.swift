@@ -18,7 +18,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/open-feature/swift-sdk.git",
-            .upToNextMajor(from: "0.0.2")
+            .upToNextMajor(from: "0.1.0")
         ),
         .package(
             url: "https://github.com/firebase/firebase-ios-sdk.git",

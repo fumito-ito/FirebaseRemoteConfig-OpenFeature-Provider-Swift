@@ -4,6 +4,7 @@
 import OpenFeature
 import FirebaseRemoteConfig
 import FirebaseCore
+import Combine
 
 // swiftlint:disable:next identifier_name
 public let firebaseRemoteConfigOpenFeatureProviderOldContextKey = "firebaseRemoteConfigOpenFeatureProviderOldContextKey"
@@ -11,6 +12,8 @@ public let firebaseRemoteConfigOpenFeatureProviderOldContextKey = "firebaseRemot
 public let firebaseRemoteConfigOpenFeatureProviderNewContextKey = "firebaseRemoteConfigOpenFeatureProviderNewContextKey"
 
 public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
+    private let providerEventSubject = PassthroughSubject<ProviderEvent, Never>()
+
     public private(set) var remoteConfig: RemoteConfigCompatible
 
     public var hooks: [any Hook] = []
@@ -72,10 +75,11 @@ public final class FirebaseRemoteConfigOpenFeatureProvider: FeatureProvider {
     public func onContextSet(oldContext: EvaluationContext?, newContext: EvaluationContext) {
         initialize(initialContext: newContext)
 
-        emit(event: .configurationChanged, details: [
-            firebaseRemoteConfigOpenFeatureProviderOldContextKey: oldContext as Any,
-            firebaseRemoteConfigOpenFeatureProviderNewContextKey: newContext as Any
-        ])
+        emit(event: .configurationChanged)
+    }
+
+    public func observe() -> AnyPublisher<OpenFeature.ProviderEvent, Never> {
+        providerEventSubject.eraseToAnyPublisher()
     }
 
     func updateStatus(for remoteConfig: RemoteConfigCompatible) {
@@ -159,8 +163,8 @@ extension FirebaseRemoteConfigOpenFeatureProvider {
 }
 
 extension FirebaseRemoteConfigOpenFeatureProvider {
-    func emit(event: ProviderEvent, error: Error? = nil, details: [String: Any]? = nil) {
-        OpenFeatureAPI.shared.emitEvent(event, provider: self, error: error, details: details)
+    func emit(event: ProviderEvent) {
+        providerEventSubject.send(event)
     }
 }
 
